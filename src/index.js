@@ -3,13 +3,22 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 
+class Ape extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return(
+      <div><Chat></Chat></div>
+    );
+  }
+}
 
 class Chat extends React.Component {
   constructor(props) {
     super(props);
     this.state = { messages: [], text: '' };
-    this.handleChangeChatMessageText = this.handleChangeChatMessageText.bind(this);
-    this.handleSubmitChatMessage = this.handleSubmitChatMessage.bind(this);
   }
   // constructor(props) {
   //   super(props);
@@ -21,19 +30,66 @@ class Chat extends React.Component {
   // }
 
   // renderMessage(message) {
-  //   return <ChatMessage />
+  //    return <ChatMessage />
   // }
 
   render() {
     return (
       <div className="chat">
         <div>
-          <ChatMessageList messages={this.chat.messages}/>
+          <ChatMessageList messages={this.state.messages}/>
         </div>
        <div>
          <ChatMessageInput />
        </div>
       </div>
+    );
+  }
+}
+
+class ChatMessageList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.chat = { messages: [], text: '' };
+  }
+
+  render() {
+    return (
+      <ul>
+        <li>
+          <ChatMessage/>
+        </li>
+      </ul>
+    );
+  }
+}
+
+class ChatMessageInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.message = {
+      sender:"Florian", 
+      text:"Hallo!",
+    };
+    this.handleChangeChatMessageText = this.handleChangeChatMessageText.bind(this);
+    this.handleSubmitChatMessage = this.handleSubmitChatMessage.bind(this);
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmitChatMessage}>
+        <label htmlFor="new-chat-message">
+          Tell it as it is
+        </label>
+        <input
+          id="new-chat-message"
+          onChange={this.handleChangeChatMessageText}
+          value={this.message.text}
+        />
+        <button>
+          Send
+        </button>
+      </form>
     );
   }
 
@@ -56,35 +112,6 @@ class Chat extends React.Component {
 
   handleChangeChatMessageText(e) {
     this.setState({ text: e.target.value });
-  }
-}
-
-class ChatMessageList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.chat = { messages: [], text: '' };
-    this.handleChangeChatMessageText = this.handleChangeChatMessageText.bind(this);
-    this.handleSubmitChatMessage = this.handleSubmitChatMessage.bind(this);
-  }
-}
-
-class ChatMessageInput extends React.Component {
-  render() {
-    return (
-      <form onSubmit={this.handleSubmitChatMessage}>
-        <label htmlFor="new-chat-message">
-          Tell it as it is
-        </label>
-        <input
-          id="new-chat-message"
-          onChange={this.handleChangeChatMessageText}
-          value={this.message.text}
-        />
-        <button>
-          Send
-        </button>
-      </form>
-    );
   }
 }
 
