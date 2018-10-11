@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import SockJsClient from 'react-stomp';
 import './index.css';
 
 
@@ -18,7 +19,9 @@ class Ape extends React.Component {
 class Chat extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { messages: [], text: '' };
+    this.state = { messages: [{text:"Hello", sender:"A"},{text:"Hi!", sender:"B"}], text: 'Enter it' };
+    this.handleChangeChatMessageText = this.handleChangeChatMessageText.bind(this);
+    this.handleSubmitChatMessage = this.handleSubmitChatMessage.bind(this);
   }
   // constructor(props) {
   //   super(props);
@@ -33,6 +36,34 @@ class Chat extends React.Component {
   //    return <ChatMessage />
   // }
 
+  handleSubmitChatMessage(e) {
+    e.preventDefault();
+    if (!this.state.text.length) {
+      return;
+    }
+    const newMessage = {
+      text: this.state.text,
+      sender: "Ape",
+      id: Date.now()
+    };
+
+    this.setState(state => ({
+      messages: state.messages.concat(newMessage),
+    }));
+    console.log("setState for messages called");
+
+    this.sendMessage = () => {
+      this.clientRef.sendMessage('/topic/public', newMessage);
+      console.log("sendMessage to socket" + {newMessage});
+    }
+    console.log("handleSubmitChatMessage done");
+   
+  }
+
+  handleChangeChatMessageText(e) {
+    this.setState({ text: e.target.value });
+  }
+
   render() {
     return (
       <div className="chat">
@@ -40,7 +71,9 @@ class Chat extends React.Component {
           <ChatMessageList messages={this.state.messages}/>
         </div>
        <div>
-         <ChatMessageInput />
+         <ChatMessageInput text={this.state.text} 
+         handleChangeChatMessageText={this.handleChangeChatMessageText} 
+         handleSubmitChatMessage={this.handleSubmitChatMessage} />
        </div>
       </div>
     );
@@ -50,17 +83,22 @@ class Chat extends React.Component {
 class ChatMessageList extends React.Component {
   constructor(props) {
     super(props);
-    this.chat = { messages: [{text:"Hello", sender:"A"},{text:"Hi!", sender:"B"}] };
   }
 
   render() {
     return (
       <div>
-        {this.chat.messages.map(item => (
-          <ChatMessage message={item}></ChatMessage>
-        ))}
-      </div>
-      
+        <div>
+          {this.props.messages.map(item => (
+            <ChatMessage message={item}></ChatMessage>
+          ))}
+        </div>
+        <div>
+          <SockJsClient url='http://localhost:8080/chat' topics={['/topic/public']}
+            onMessage={(msg) => { console.log(msg); }}
+            ref={ (client) => { this.clientRef = client }} />
+        </div>
+       </div>
     );
   }
 }
@@ -68,25 +106,20 @@ class ChatMessageList extends React.Component {
 class ChatMessageInput extends React.Component {
   constructor(props) {
     super(props);
-    this.message = {
-      sender:"Florian", 
-      text:"Hallo!",
-    };
-    this.handleChangeChatMessageText = this.handleChangeChatMessageText.bind(this);
-    this.handleSubmitChatMessage = this.handleSubmitChatMessage.bind(this);
+   
   }
 
   render() {
     return (
       <p>
-        <form onSubmit={this.handleSubmitChatMessage}>
+        <form onSubmit={this.props.handleSubmitChatMessage}>
           <label htmlFor="new-chat-message">
             Tell it as it is
           </label>
           <input
             id="new-chat-message"
-            onChange={this.handleChangeChatMessageText}
-            value={this.message.text}
+            onChange={this.props.handleChangeChatMessageText}
+            value={this.props.text}
           />
           <button>
             Send
@@ -96,26 +129,7 @@ class ChatMessageInput extends React.Component {
     );
   }
 
-  handleSubmitChatMessage(e) {
-    e.preventDefault();
-    if (!this.message.text.length) {
-      return;
-    }
-    const newMessage = {
-      text: this.message.text,
-      sender: "Ape",
-      id: Date.now()
-    };
-
-    this.addMessage(message => ({
-      items: message.items.concat(newMessage),
-      text: ''
-    }));
-  }
-
-  handleChangeChatMessageText(e) {
-    this.setState({ text: e.target.value });
-  }
+ 
 }
 
 class ChatMessage extends React.Component {
