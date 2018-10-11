@@ -50,16 +50,17 @@ class Chat extends React.Component {
 class ChatMessageList extends React.Component {
   constructor(props) {
     super(props);
-    this.chat = { messages: [], text: '' };
+    this.chat = { messages: [{text:"Hello", sender:"A"},{text:"Hi!", sender:"B"}] };
   }
 
   render() {
     return (
-      <ul>
-        <li>
-          <ChatMessage/>
-        </li>
-      </ul>
+      <div>
+        {this.chat.messages.map(item => (
+          <ChatMessage message={item}></ChatMessage>
+        ))}
+      </div>
+      
     );
   }
 }
@@ -77,19 +78,21 @@ class ChatMessageInput extends React.Component {
 
   render() {
     return (
-      <form onSubmit={this.handleSubmitChatMessage}>
-        <label htmlFor="new-chat-message">
-          Tell it as it is
-        </label>
-        <input
-          id="new-chat-message"
-          onChange={this.handleChangeChatMessageText}
-          value={this.message.text}
-        />
-        <button>
-          Send
-        </button>
-      </form>
+      <p>
+        <form onSubmit={this.handleSubmitChatMessage}>
+          <label htmlFor="new-chat-message">
+            Tell it as it is
+          </label>
+          <input
+            id="new-chat-message"
+            onChange={this.handleChangeChatMessageText}
+            value={this.message.text}
+          />
+          <button>
+            Send
+          </button>
+        </form>
+      </p>
     );
   }
 
@@ -118,17 +121,12 @@ class ChatMessageInput extends React.Component {
 class ChatMessage extends React.Component {
   constructor(props) {
     super(props);
-    this.message = {
-      sender:"Florian", 
-      text:"Hallo!",
-    }
   }
 
   render() {
     return (
       <div className="message">
-      <div className="sender">Florian</div>
-      <div className="text">Guten morgen</div>
+        Sender <span className="sender">{this.props.message.sender}</span> Text <span className="text">{this.props.message.text}</span>
       </div>
     );
   }
