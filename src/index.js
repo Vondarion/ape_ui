@@ -36,8 +36,6 @@ class Chat extends React.Component {
   //    return <ChatMessage />
   // }
 
-
-
   handleSubmitChatMessage(e) {
     e.preventDefault();
     if (!this.state.text.length) {
@@ -56,7 +54,6 @@ class Chat extends React.Component {
 
     this.sendMessage(newMessage);
     console.log("handleSubmitChatMessage done");
-   
   }
 
   sendMessage(message) {
