@@ -19,7 +19,7 @@ class Ape extends React.Component {
 class Chat extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { messages: [{text:"Hello", sender:"A"},{text:"Hi!", sender:"B"}], text: 'Enter it' };
+    this.state = { clientConnected: false, messages: [{content:"Hello", sender:"A"},{content:"Hi!", sender:"B"}], text: 'Enter it' };
     this.handleChangeChatMessageText = this.handleChangeChatMessageText.bind(this);
     this.handleSubmitChatMessage = this.handleSubmitChatMessage.bind(this);
   }
@@ -36,15 +36,17 @@ class Chat extends React.Component {
   //    return <ChatMessage />
   // }
 
+
+
   handleSubmitChatMessage(e) {
     e.preventDefault();
     if (!this.state.text.length) {
       return;
     }
     const newMessage = {
-      text: this.state.text,
-      sender: "Ape",
-      id: Date.now()
+      type: 'CHAT',
+      content: this.state.text,
+      sender: "Ape"
     };
 
     this.setState(state => ({
@@ -52,23 +54,46 @@ class Chat extends React.Component {
     }));
     console.log("setState for messages called");
 
-    this.sendMessage = () => {
-      this.clientRef.sendMessage('/topic/public', newMessage);
-      console.log("sendMessage to socket" + {newMessage});
-    }
+    this.sendMessage(newMessage);
     console.log("handleSubmitChatMessage done");
    
   }
 
-  handleChangeChatMessageText(e) {
-    this.setState({ text: e.target.value });
+  sendMessage(message) {
+    console.log("sendingMessage to socket" + {message});
+    this.clientRef.sendMessage('/app/chat', JSON.stringify(message));
+    console.log("sendMessage to socket" + {message});
   }
 
+  handleChangeChatMessageText(e) {
+    this.setState({ text: e.target.value });
+    console.log("Message text changed:" + e.target.value)
+  }
+
+  onMessageReceive = (msg, topic) => {
+    this.setState(prevState => ({
+      messages: [...prevState.messages, msg]
+    }))
+    // this.setState(prevState => ({
+    //   messages: [...prevState.messages, msg]
+    // }));
+    console.log(msg);
+  }
+
+
   render() {
+    const wsSourceUrl = "http://localhost:8080/ws"; //window.location.protocol + "//" + window.location.host + "/ws";
     return (
       <div className="chat">
         <div>
           <ChatMessageList messages={this.state.messages}/>
+
+        <SockJsClient url={ wsSourceUrl } topics={["/topic/all"]}
+          onMessage={ this.onMessageReceive } ref={ (client) => { this.clientRef = client }}
+          onConnect={ () => { this.setState({ clientConnected: true }) } }
+          onDisconnect={ () => { this.setState({ clientConnected: false }) } }
+          debug={ true }/>
+
         </div>
        <div>
          <ChatMessageInput text={this.state.text} 
@@ -92,11 +117,6 @@ class ChatMessageList extends React.Component {
           {this.props.messages.map(item => (
             <ChatMessage message={item}></ChatMessage>
           ))}
-        </div>
-        <div>
-          <SockJsClient url='http://localhost:8080/chat' topics={['/topic/public']}
-            onMessage={(msg) => { console.log(msg); }}
-            ref={ (client) => { this.clientRef = client }} />
         </div>
        </div>
     );
@@ -140,7 +160,7 @@ class ChatMessage extends React.Component {
   render() {
     return (
       <div className="message">
-        Sender <span className="sender">{this.props.message.sender}</span> Text <span className="text">{this.props.message.text}</span>
+        Sender <span className="sender">{this.props.message.sender}</span>: <span className="text">{this.props.message.content}</span>
       </div>
     );
   }
